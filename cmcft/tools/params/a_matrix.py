@@ -18,6 +18,7 @@ def a_matrix(g):
     # couple_matrix
     # Construct coupled graph matrix from graph structure
     #
+    #
     # Inputs:   g           -   current graph structure
     #
     # Outputs:  a_coup      -   coupled incidence matrix
@@ -36,7 +37,11 @@ def a_matrix(g):
     edges_to_add = build_coupled_edges(g, nodelist)
 
     # Add edges to matrix
-    a_extra = np.hstack((a_dense, edges_to_add))
+    try:
+        a_extra = np.hstack((a_dense, edges_to_add))
+    except ValueError:
+        print('No edges to couple in this frame')
+        a_extra = a_dense
 
     # Remove split/merge vertices and previously associated edges
     a_reduce = reduce_to_coupled(a_extra, nodelist)
@@ -75,10 +80,8 @@ def build_coupled_edges(g, nodelist):
             for c in cycle_set:
                 coupled_edge = list(fixed_edge)
                 coupled_edge[nodelist.index(c[0])] = c[1]
-                try:
-                    new_edges.append(coupled_edge)
-                except UnboundLocalError:
-                    new_edges = list(coupled_edge)
+
+                new_edges.append(coupled_edge)
 
     new_array = np.asarray(new_edges)
     new_array = np.transpose(new_array)
@@ -175,25 +178,16 @@ def adjust_capacity_edges(a_dense, nodelist):
 
     # Total nodes
     l_nodes = sum(1 for x in couple_vertices if 'L' in x)
-    r_nodes = sum(1 for x in couple_vertices if 'R' in x)
 
     # Edge indices connected to nodes
-    source_e = np.nonzero(a_dense[couple_vertices.index('T+'), :])[1]
     a_e = np.nonzero(a_dense[couple_vertices.index('A'), :])[1]
     d_e = np.nonzero(a_dense[couple_vertices.index('D'), :])[1]
-    sink_e = np.nonzero(a_dense[couple_vertices.index('T-'), :])[1]
 
     # Edges
-    source_a = set(source_e).intersection(a_e).pop()
     a_d = set(a_e).intersection(d_e).pop()
-    d_sink = set(d_e).intersection(sink_e).pop()
 
     # Add Edges appropriate number of times
-    for x in xrange(1, r_nodes):
-        a_cap = np.hstack((a_cap, a_cap[:, source_a]))
-
     for x in xrange(1, l_nodes):
         a_cap = np.hstack((a_cap, a_cap[:, a_d]))
-        a_cap = np.hstack((a_cap, a_cap[:, d_sink]))
 
     return a_cap
