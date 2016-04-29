@@ -9,8 +9,8 @@ import glob
 from tools import solve, output, graph, params
 
 
-def track(img_path, w=110, prune=(0.5, 0.2),
-          save_path=None, annotated=False, csv=False):
+def track(img_path, w=110, prune=(0.25, 0.2),
+          save_path=None, annotated=False, csv=False, json=False):
 
     # track
     # tracking function. Loops through sets of image files. For each pair,
@@ -25,6 +25,7 @@ def track(img_path, w=110, prune=(0.5, 0.2),
     #           save_path   -  path to directory for saved output
     #           annotated   -  option to save annotated images of cell tracks
     #           csv         -  option to save csv of output
+    #           json        -  option to save JSON of output
     #
     #
     # Outputs:  tracks      -  Output data structure for cell tracks.
@@ -55,7 +56,7 @@ def track(img_path, w=110, prune=(0.5, 0.2),
 
             # Initialise output
             if not output_data:
-                output_data = output.initialise(g.node)
+                output_data = output.initialise_out(g.node)
                 if annotated:
                     output.overlay(output_data, l_img, save_path)
 
@@ -77,8 +78,12 @@ def track(img_path, w=110, prune=(0.5, 0.2),
             if annotated:
                 output.overlay(output_data, r_img, save_path)
 
-    # If required, save output as csv
+
+    # If required, save output as csv or JSON
     if csv:
         output.save_csv(output_data, save_path)
+
+    if json:
+        output.save_json(output_data, save_path)
 
     return output_data
